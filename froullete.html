@@ -1,138 +1,150 @@
 <!doctype html>
 <html lang="en-us">
-<head>
+  <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>Mobile Friendly Emscripten</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    <title>Fate Roulette Mobile</title>
+
     <style>
-        body {
-            font-family: arial;
-            margin: 0;
-            padding: 0;
-            background-color: #000;
-            overflow: hidden; /* Prevent scrolling on mobile */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            width: 100vw;
-        }
+      html, body {
+          width: 100%;
+          height: 100%;
+          margin: 0;
+          padding: 0;
+          background: #000;
+          overflow: hidden;
+      }
 
-        /* Loading Spinner */
-        .spinner {
-            height: 30px;
-            width: 30px;
-            margin: 10px;
-            border-left: 5px solid #ebebeb;
-            border-right: 5px solid #ebebeb;
-            border-bottom: 5px solid #ebebeb;
-            border-top: 5px solid #787878;
-            border-radius: 100%;
-            animation: rotation .8s linear infinite;
-        }
+      body {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          font-family: Arial, sans-serif;
+      }
 
-        @keyframes rotation {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+      /* Spinner */
+      .spinner {
+          width: 30px;
+          height: 30px;
+          margin: 12px;
+          border: 5px solid #ebebeb;
+          border-top-color: #787878;
+          border-radius: 50%;
+          animation: spin .8s linear infinite;
+      }
 
-        #status {
-            font-weight: bold;
-            color: #787878;
-            margin-bottom: 10px;
-        }
+      @keyframes spin {
+          to { transform: rotate(360deg); }
+      }
 
-        /* The Canvas container */
-        .emscripten_border {
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
-        }
+      #status {
+          color: #787878;
+          font-weight: bold;
+          margin-bottom: 10px;
+      }
 
-        canvas.emscripten {
-            border: 0 none;
-            background-color: #000;
-            /* Maintain Aspect Ratio Logic */
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            /* Hide Cursor */
-            cursor: none;
-        }
+      /* Canvas container */
+      .emscripten_border {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+      }
 
-        /* Hide the text output and progress bar for a cleaner mobile look */
-        #output, #progress, #controls {
-            display: none !important;
-        }
+      canvas {
+          background: #000;
+          border: none;
+          display: block;
+          transform: translateZ(0);
+          will-change: transform;
+      }
     </style>
-</head>
-<body>
+  </head>
+
+  <body>
 
     <div class="spinner" id="spinner"></div>
-    <div id="status">Downloading...</div>
-    <progress hidden id="progress" max="100" value="0"></progress>
+    <div id="status">Downloading…</div>
 
     <div class="emscripten_border">
-        <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+      <canvas id="canvas" tabindex="-1"
+              oncontextmenu="event.preventDefault()"></canvas>
     </div>
 
-    <textarea id="output" rows="8" style="display:none"></textarea>
-
     <script>
-        var statusElement = document.getElementById("status"),
-            progressElement = document.getElementById("progress"),
-            spinnerElement = document.getElementById("spinner"),
-            canvasElement = document.getElementById("canvas");
+      /* ===== Viewport Fix (Android WebView) ===== */
+      function fixViewport() {
+          const h = window.innerHeight;
+          document.documentElement.style.height = h + "px";
+          document.body.style.height = h + "px";
+      }
 
-        var Module = {
-            print: function(text) { console.log(text); },
-            canvas: canvasElement,
-            setStatus: function(text) {
-                if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: "" };
-                if (text === Module.setStatus.last.text) return;
-                var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
-                var now = Date.now();
-                if (m && now - Module.setStatus.last.time < 30) return; 
-                Module.setStatus.last.time = now;
-                Module.setStatus.last.text = text;
-                if (m) {
-                    text = m[1];
-                    progressElement.value = parseInt(m[2]) * 100;
-                    progressElement.max = parseInt(m[4]) * 100;
-                    progressElement.hidden = false;
-                    spinnerElement.hidden = false;
-                } else {
-                    progressElement.value = null;
-                    progressElement.max = null;
-                    progressElement.hidden = true;
-                    if (!text) {
-                        spinnerElement.style.display = "none";
-                        statusElement.style.display = "none";
-                    }
-                }
-                statusElement.innerHTML = text;
-            },
-            totalDependencies: 0,
-            monitorRunDependencies: function(left) {
-                this.totalDependencies = Math.max(this.totalDependencies, left);
-                Module.setStatus(left ? "Preparing... (" + (this.totalDependencies - left) + "/" + this.totalDependencies + ")" : "All downloads complete.");
-            }
-        };
+      /* ===== Canvas Resize ===== */
+      function resizeCanvas() {
+          const canvas = Module.canvas;
+          if (!canvas) return;
 
-        Module.setStatus("Downloading...");
-        
-        window.onerror = function(event) {
-            Module.setStatus("Exception thrown, see JavaScript console");
-            spinnerElement.style.display = "none";
-            Module.setStatus = function(text) {
-                if (text) console.error("[post-exception status] " + text);
-            };
-        };
+          const dpr = window.devicePixelRatio || 1;
+          const w = window.innerWidth;
+          const h = window.innerHeight;
+
+          canvas.width  = w * dpr;
+          canvas.height = h * dpr;
+          canvas.style.width  = w + "px";
+          canvas.style.height = h + "px";
+      }
+
+      /* ===== Emscripten Module ===== */
+      var Module = {
+          canvas: document.getElementById("canvas"),
+
+          print: function (text) {
+              console.log(text);
+          },
+
+          setStatus: function (text) {
+              const status = document.getElementById("status");
+              const spinner = document.getElementById("spinner");
+
+              if (!text) {
+                  spinner.style.display = "none";
+                  status.style.display = "none";
+              } else {
+                  status.textContent = text;
+                  spinner.style.display = "block";
+              }
+          },
+
+          monitorRunDependencies: function (left) {
+              Module.setStatus(left
+                               ? "Preparing…"
+                               : "All downloads complete");
+          },
+
+          postRun: [function () {
+              fixViewport();
+              resizeCanvas();
+
+              window.addEventListener("resize", () => {
+                  fixViewport();
+                  resizeCanvas();
+              });
+          }]
+      };
+
+      /* ===== Error Handling ===== */
+      window.onerror = function (e) {
+          console.error(e);
+          Module.setStatus("Error – check console");
+      };
     </script>
-    <script async src="froullete.js"></script>
-</body>
+
+    <!-- ⚠️ MUST NOT BE async -->
+    <script src="froullete.js"></script>
+
+  </body>
 </html>
