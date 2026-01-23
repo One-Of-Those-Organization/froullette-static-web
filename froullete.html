@@ -1,180 +1,160 @@
 <!doctype html>
 <html lang="en-us">
-  <head>
+<head>
     <meta charset="utf-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-
-    <title>Fate Roulette Mobile</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Fate Roullete</title>
     <style>
-      html, body {
-          width: 100%;
-          height: 100%;
-          margin: 0;
-          padding: 0;
-          background: #000;
-          overflow: hidden;
-      }
+        body {
+            font-family: arial;
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            overflow: hidden; /* Prevent scrolling on mobile */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+        }
 
-      body {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          font-family: Arial, sans-serif;
-      }
+        /* Loading Spinner */
+        .spinner {
+            height: 30px;
+            width: 30px;
+            margin: 10px;
+            border-left: 5px solid #ebebeb;
+            border-right: 5px solid #ebebeb;
+            border-bottom: 5px solid #ebebeb;
+            border-top: 5px solid #787878;
+            border-radius: 100%;
+            animation: rotation .8s linear infinite;
+        }
 
-      /* Spinner */
-      .spinner {
-          width: 30px;
-          height: 30px;
-          margin: 12px;
-          border: 5px solid #ebebeb;
-          border-top-color: #787878;
-          border-radius: 50%;
-          animation: spin .8s linear infinite;
-      }
+        @keyframes rotation {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
 
-      @keyframes spin {
-          to { transform: rotate(360deg); }
-      }
+        #status {
+            font-weight: bold;
+            color: #787878;
+            margin-bottom: 10px;
+        }
 
-      #status {
-          color: #787878;
-          font-weight: bold;
-          margin-bottom: 10px;
-      }
+        /* The Canvas container */
+        .emscripten_border {
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
 
-      /* Canvas container */
-      .emscripten_border {
-          width: 100%;
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-      }
+        canvas.emscripten {
+            border: 0 none;
+            background-color: #000;
+            /* Maintain Aspect Ratio Logic */
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            /* Hide Cursor */
+            cursor: none;
+        }
 
-      canvas {
-          background: #000;
-          border: none;
-          display: block;
-          transform: translateZ(0);
-          will-change: transform;
-      }
+        /* Hide the text output and progress bar for a cleaner mobile look */
+        #output, #progress, #controls {
+            display: none !important;
+        }
     </style>
-  </head>
-
-  <body>
-
-    <div class="spinner" id="spinner"></div>
-    <div id="status">Downloading…</div>
-
-    <div class="emscripten_border">
-      <canvas id="canvas" tabindex="-1"
-              oncontextmenu="event.preventDefault()"></canvas>
-    </div>
 
     <script>
-      /* ===== Viewport Fix (Android WebView) ===== */
-      function fixViewport() {
-          const h = window.innerHeight;
-          document.documentElement.style.height = h + "px";
-          document.body.style.height = h + "px";
-      }
+        Module.onRuntimeInitialized = function () {
+            const canvas = document.getElementById("canvas");
 
-      /* ===== Canvas Resize ===== */
-      function resizeCanvas() {
-          const canvas = Module.canvas;
-          if (!canvas) return;
+            function unlock() {
+                // Simulate a key press to the game
+                canvas.dispatchEvent(
+                    new KeyboardEvent("keydown", { key: " ", code: "Space" })
+                );
+                canvas.dispatchEvent(
+                    new KeyboardEvent("keyup", { key: " ", code: "Space" })
+                );
 
-          const dpr = window.devicePixelRatio || 1;
-          const w = window.innerWidth;
-          const h = window.innerHeight;
+                document.removeEventListener("click", unlock);
+                document.removeEventListener("touchstart", unlock);
+            }
 
-          canvas.width  = w * dpr;
-          canvas.height = h * dpr;
-          canvas.style.width  = w + "px";
-          canvas.style.height = h + "px";
-      }
-
-      /* ===== Emscripten Module ===== */
-      var Module = {
-          canvas: document.getElementById("canvas"),
-
-          print: function (text) {
-              console.log(text);
-          },
-
-          setStatus: function (text) {
-              const status = document.getElementById("status");
-              const spinner = document.getElementById("spinner");
-
-              if (!text) {
-                  spinner.style.display = "none";
-                  status.style.display = "none";
-              } else {
-                  status.textContent = text;
-                  spinner.style.display = "block";
-              }
-          },
-
-          monitorRunDependencies: function (left) {
-              Module.setStatus(left
-                               ? "Preparing…"
-                               : "All downloads complete");
-          },
-
-          postRun: [function () {
-              fixViewport();
-              resizeCanvas();
-
-              window.addEventListener("resize", () => {
-                  fixViewport();
-                  resizeCanvas();
-              });
-          }]
-      };
-
-      // Add Module.onRuntimeInitialized to ensure audio unlock is handled after Emscripten is ready
-      Module.onRuntimeInitialized = function () {
-          console.log("Emscripten runtime initialized. Enabling audio unlock via user interaction.");
-
-          const canvas = document.getElementById("canvas");
-
-          function unlockAudioContext() {
-              // Simulate a key press to the game
-              canvas.dispatchEvent(
-                  new KeyboardEvent("keydown", { key: " ", code: "Space" })
-              );
-              canvas.dispatchEvent(
-                  new KeyboardEvent("keyup", { key: " ", code: "Space" })
-              );
-
-              // Remove these listeners once the audio is unlocked
-              document.removeEventListener("click", unlockAudioContext);
-              document.removeEventListener("touchstart", unlockAudioContext);
-
-              // miniaudio.unlock() is typically called internally by Emscripten's
-              // generated code via the addEventListener('touchend', miniaudio.unlock) etc.
-              // So we don't need to explicitly call window.miniaudio.unlock() here,
-              // as the keypress simulation should be sufficient if the C/C++ side
-              // is listening for input to resume.
-          }
-
-          document.addEventListener("click", unlockAudioContext);
-          document.addEventListener("touchstart", unlockAudioContext);
-      };
-
-      /* ===== Error Handling ===== */
-      window.onerror = function (e) {
-          console.error(e);
-          Module.setStatus("Error – check console");
-      };
+            document.addEventListener("click", unlock);
+            document.addEventListener("touchstart", unlock);
+        };
     </script>
+</head>
+<body>
 
-    <!-- ⚠️ MUST NOT BE async -->
-    <script src="froullete.js"></script>
+    <div class="spinner" id="spinner"></div>
+    <div id="status">Downloading...</div>
+    <progress hidden id="progress" max="100" value="0"></progress>
 
-  </body>
+    <div class="emscripten_border">
+        <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+    </div>
+
+    <textarea id="output" rows="8" style="display:none"></textarea>
+
+    <script>
+        var statusElement = document.getElementById("status"),
+            progressElement = document.getElementById("progress"),
+            spinnerElement = document.getElementById("spinner"),
+            canvasElement = document.getElementById("canvas");
+
+        var Module = {
+            print: function(text) { console.log(text); },
+            canvas: canvasElement,
+            setStatus: function(text) {
+                if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: "" };
+                if (text === Module.setStatus.last.text) return;
+                var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+                var now = Date.now();
+                if (m && now - Module.setStatus.last.time < 30) return; 
+                Module.setStatus.last.time = now;
+                Module.setStatus.last.text = text;
+                if (m) {
+                    text = m[1];
+                    progressElement.value = parseInt(m[2]) * 100;
+                    progressElement.max = parseInt(m[4]) * 100;
+                    progressElement.hidden = false;
+                    spinnerElement.hidden = false;
+                } else {
+                    progressElement.value = null;
+                    progressElement.max = null;
+                    progressElement.hidden = true;
+                    if (!text) {
+                        spinnerElement.style.display = "none";
+                        statusElement.style.display = "none";
+                    }
+                }
+                statusElement.innerHTML = text;
+            },
+            totalDependencies: 0,
+            monitorRunDependencies: function(left) {
+                this.totalDependencies = Math.max(this.totalDependencies, left);
+                Module.setStatus(left ? "Preparing... (" + (this.totalDependencies - left) + "/" + this.totalDependencies + ")" : "All downloads complete.");
+            }
+        };
+
+        Module.setStatus("Downloading...");
+        
+        window.onerror = function(event) {
+            Module.setStatus("Exception thrown, see JavaScript console");
+            spinnerElement.style.display = "none";
+            Module.setStatus = function(text) {
+                if (text) console.error("[post-exception status] " + text);
+            };
+        };
+    </script>
+    <script async src="froullete.js"></script>
+</body>
 </html>
