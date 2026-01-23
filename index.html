@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>Mobile Friendly Emscripten</title>
+    <title>Fate Roullete</title>
     <style>
         body {
             font-family: arial;
@@ -69,6 +69,28 @@
             display: none !important;
         }
     </style>
+
+    <script>
+        Module.onRuntimeInitialized = function () {
+            const canvas = document.getElementById("canvas");
+
+            function unlock() {
+                // Simulate a key press to the game
+                canvas.dispatchEvent(
+                    new KeyboardEvent("keydown", { key: " ", code: "Space" })
+                );
+                canvas.dispatchEvent(
+                    new KeyboardEvent("keyup", { key: " ", code: "Space" })
+                );
+
+                document.removeEventListener("click", unlock);
+                document.removeEventListener("touchstart", unlock);
+            }
+
+            document.addEventListener("click", unlock);
+            document.addEventListener("touchstart", unlock);
+        };
+    </script>
 </head>
 <body>
 

@@ -136,6 +136,36 @@
           }]
       };
 
+      // Add Module.onRuntimeInitialized to ensure audio unlock is handled after Emscripten is ready
+      Module.onRuntimeInitialized = function () {
+          console.log("Emscripten runtime initialized. Enabling audio unlock via user interaction.");
+
+          const canvas = document.getElementById("canvas");
+
+          function unlockAudioContext() {
+              // Simulate a key press to the game
+              canvas.dispatchEvent(
+                  new KeyboardEvent("keydown", { key: " ", code: "Space" })
+              );
+              canvas.dispatchEvent(
+                  new KeyboardEvent("keyup", { key: " ", code: "Space" })
+              );
+
+              // Remove these listeners once the audio is unlocked
+              document.removeEventListener("click", unlockAudioContext);
+              document.removeEventListener("touchstart", unlockAudioContext);
+
+              // miniaudio.unlock() is typically called internally by Emscripten's
+              // generated code via the addEventListener('touchend', miniaudio.unlock) etc.
+              // So we don't need to explicitly call window.miniaudio.unlock() here,
+              // as the keypress simulation should be sufficient if the C/C++ side
+              // is listening for input to resume.
+          }
+
+          document.addEventListener("click", unlockAudioContext);
+          document.addEventListener("touchstart", unlockAudioContext);
+      };
+
       /* ===== Error Handling ===== */
       window.onerror = function (e) {
           console.error(e);
