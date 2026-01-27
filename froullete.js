@@ -29,7 +29,7 @@ var ENVIRONMENT_IS_SHELL = !ENVIRONMENT_IS_WEB && !ENVIRONMENT_IS_NODE && !ENVIR
 
 // --pre-jses are emitted after the Module integration code, so that they can
 // refer to Module (if they choose; they can also define Module)
-// include: /tmp/tmplm8h8gtq.js
+// include: /tmp/tmp9lcr7vxd.js
 
   if (!Module['expectedDataFileDownloads']) Module['expectedDataFileDownloads'] = 0;
   Module['expectedDataFileDownloads']++;
@@ -158,11 +158,11 @@ Module['FS_createPath']("/", "assets", true, true);
     }
 
     }
-    loadPackage({"files": [{"filename": "/assets/Death_Pil.png", "start": 0, "end": 943}, {"filename": "/assets/DoctorFix1024.png", "start": 943, "end": 48753}, {"filename": "/assets/FormReveal.png", "start": 48753, "end": 50035}, {"filename": "/assets/alagard.ttf", "start": 50035, "end": 63579}, {"filename": "/assets/background.png", "start": 63579, "end": 230430}, {"filename": "/assets/brain.png", "start": 230430, "end": 254372}, {"filename": "/assets/button-click.wav", "start": 254372, "end": 579502}, {"filename": "/assets/cursor.png", "start": 579502, "end": 580761}, {"filename": "/assets/cursor.xcf", "start": 580761, "end": 589324}, {"filename": "/assets/desk.png", "start": 589324, "end": 700647}, {"filename": "/assets/eerie.ogg", "start": 700647, "end": 4322204}, {"filename": "/assets/exit.png", "start": 4322204, "end": 4323587}, {"filename": "/assets/hurt.wav", "start": 4323587, "end": 4358617}, {"filename": "/assets/inject.wav", "start": 4358617, "end": 4552231}, {"filename": "/assets/item-use.wav", "start": 4552231, "end": 4662901}, {"filename": "/assets/nayeon.png", "start": 4662901, "end": 4663645}, {"filename": "/assets/needle_normal.png", "start": 4663645, "end": 4924879}, {"filename": "/assets/settings.png", "start": 4924879, "end": 4926366}], "remote_package_size": 4926366});
+    loadPackage({"files": [{"filename": "/assets/Death_Pil.png", "start": 0, "end": 943}, {"filename": "/assets/DoctorFix1024.png", "start": 943, "end": 48753}, {"filename": "/assets/FormReveal.png", "start": 48753, "end": 50035}, {"filename": "/assets/alagard.ttf", "start": 50035, "end": 63579}, {"filename": "/assets/background.png", "start": 63579, "end": 230430}, {"filename": "/assets/brain.png", "start": 230430, "end": 254372}, {"filename": "/assets/button-click.wav", "start": 254372, "end": 579502}, {"filename": "/assets/cursor.png", "start": 579502, "end": 580761}, {"filename": "/assets/cursor.xcf", "start": 580761, "end": 589324}, {"filename": "/assets/desk.png", "start": 589324, "end": 700647}, {"filename": "/assets/eerie.ogg", "start": 700647, "end": 4322204}, {"filename": "/assets/exit.png", "start": 4322204, "end": 4323587}, {"filename": "/assets/hurt.wav", "start": 4323587, "end": 4358617}, {"filename": "/assets/inject.wav", "start": 4358617, "end": 4552231}, {"filename": "/assets/item-use.wav", "start": 4552231, "end": 4662901}, {"filename": "/assets/nayeon.png", "start": 4662901, "end": 4663645}, {"filename": "/assets/needle_normal.png", "start": 4663645, "end": 4924879}, {"filename": "/assets/settings.png", "start": 4924879, "end": 4926366}, {"filename": "/assets/use-needle.png", "start": 4926366, "end": 4927460}], "remote_package_size": 4927460});
 
   })();
 
-// end include: /tmp/tmplm8h8gtq.js
+// end include: /tmp/tmp9lcr7vxd.js
 
 
 var arguments_ = [];
